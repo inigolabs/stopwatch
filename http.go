@@ -1,4 +1,4 @@
-package profiletimer
+package stopwatch
 
 import (
 	"context"
@@ -13,7 +13,7 @@ var (
 
 func TimerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		timer := StartProfileTimer()
+		timer := Start()
 		r = requestWithTimer(r, timer)
 		next.ServeHTTP(w, r)
 

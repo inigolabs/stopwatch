@@ -1,4 +1,4 @@
-package profiletimer
+package stopwatch
 
 import (
 	"bufio"
@@ -16,7 +16,7 @@ type Timer interface {
 	ShowResults() error
 }
 
-type profileTimer struct {
+type timer struct {
 	steps []*step
 }
 
@@ -25,21 +25,21 @@ type step struct {
 	time  time.Time
 }
 
-// StartProfileTimer creates a profile timer and starts it.
-func StartProfileTimer() *profileTimer {
-	t := &profileTimer{}
+// Start creates a profile timer and starts it.
+func Start() *timer {
+	t := &timer{}
 	t.steps = append(t.steps, &step{"init", time.Now()})
 	return t
 }
 
 // Step is like a lap on a stopwatch, it records the amount of time since the
 //  the last step and marks this step with the given label
-func (t *profileTimer) Step(label string) {
+func (t *timer) Step(label string) {
 	t.steps = append(t.steps, &step{label, time.Now()})
 }
 
 // WriteResults writes the timer step results to the given writer.
-func (t *profileTimer) WriteResults(w io.Writer) error {
+func (t *timer) WriteResults(w io.Writer) error {
 	maxLabelLength := 0
 	for _, s := range t.steps {
 		if len(s.label) > maxLabelLength {
@@ -83,7 +83,7 @@ func (t *profileTimer) WriteResults(w io.Writer) error {
 }
 
 // ShowResults outputs the timer step results to stdout.
-func (t *profileTimer) ShowResults() error {
+func (t *timer) ShowResults() error {
 	return t.WriteResults(os.Stdout)
 }
 

@@ -18,7 +18,7 @@ Usage
 -----
 ```Go
 func main() {
-    timer := profiletimer.StartProfileTimer()
+    timer := stopwatch.Start()
 
     doSomeStuff()
     timer.Step("doSomeStuff")
@@ -45,13 +45,13 @@ Middleware
 ```Go
 func main() {
     router := chi.NewRouter()
-    router.Use(profiletimer.TimerMiddleware)
+    router.Use(stopwatch.TimerMiddleware)
     router.Get("/", get)
     http.ListenAndServe(":80", router)
 }
 
 func get(w http.ResponseWriter, r *http.Request) {
-    timer := profiletimer.TimerFromContext(r.Context())
+    timer := stopwatch.TimerFromContext(r.Context())
     doSomeStuff()
     timer.Step("doSomeStuff")
     doSomeMoreStuff()
@@ -63,7 +63,7 @@ func get(w http.ResponseWriter, r *http.Request) {
 
 ### Noop Timer
 
-Often, you'll want to leave the profile step function calls in the code and only run them in debug or profile mode. In this case you can use `StartProfileTimer()` when in debug mode, and otherwise instantiate the timer using `StartNoopTimer()`. 
+Often, you'll want to leave the profile step function calls in the code and only run them in debug or profile mode. In this case you can use `Start()` when in debug mode, and otherwise instantiate the timer using `StartNoopTimer()`. 
 
 License
 -------
