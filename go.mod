@@ -1,3 +1,3 @@
-module github.com/ejoffe/profiletimer
+module github.com/inigolabs/stopwatch
 
 go 1.16
