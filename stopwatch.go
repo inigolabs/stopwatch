@@ -9,15 +9,27 @@ import (
 	"time"
 )
 
-// Timer is the interface for profile or stopwatch timer.
+// Timer is the interface for the stopwatch timer.
 type Timer interface {
 	Step(label string)
 	WriteResults(w io.Writer) error
 	ShowResults() error
+	GetResults() *Results
+}
+
+type Results struct {
+	Steps []Step `json:"steps"`
+}
+
+type Step struct {
+	Label    string        `json:"label"`
+	Duration time.Duration `json:"duration"`
 }
 
 type timer struct {
 	steps []*step
+
+	now func() time.Time
 }
 
 type step struct {
@@ -27,15 +39,17 @@ type step struct {
 
 // Start creates a profile timer and starts it.
 func Start() *timer {
-	t := &timer{}
-	t.steps = append(t.steps, &step{"init", time.Now()})
+	t := &timer{
+		now: time.Now,
+	}
+	t.steps = append(t.steps, &step{"init", t.now()})
 	return t
 }
 
 // Step is like a lap on a stopwatch, it records the amount of time since the
 //  the last step and marks this step with the given label
 func (t *timer) Step(label string) {
-	t.steps = append(t.steps, &step{label, time.Now()})
+	t.steps = append(t.steps, &step{label, t.now()})
 }
 
 // WriteResults writes the timer step results to the given writer.
@@ -87,6 +101,20 @@ func (t *timer) ShowResults() error {
 	return t.WriteResults(os.Stdout)
 }
 
+// GetResults returns the timer step results.
+func (t *timer) GetResults() *Results {
+	results := &Results{}
+	for i := 1; i < len(t.steps); i++ {
+		step := t.steps[i]
+		duration := step.time.Sub(t.steps[i-1].time)
+		results.Steps = append(results.Steps, Step{
+			Label:    step.label,
+			Duration: duration,
+		})
+	}
+	return results
+}
+
 type noopTimer struct{}
 
 // StartNoopTimer creates a timer that does nothing. This is useful in cases
@@ -104,6 +132,9 @@ func (t *noopTimer) WriteResults(w io.Writer) error { return nil }
 
 // ShowResults for noop timer does nothing
 func (t *noopTimer) ShowResults() error { return nil }
+
+// GetResults for noop timer does nothing
+func (t *noopTimer) GetResults() *Results { return nil }
 
 func durationMillisecondStr(d time.Duration) string {
 	ms := float64(d) / float64(time.Millisecond)
