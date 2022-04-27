@@ -1,0 +1,8 @@
+githubRepoOwner: inigolabs
+githubRepoName: stopwatch
+githubHost: github.com
+requireChecks: false
+requireApproval: false
+githubRemote: origin
+githubBranch: main
+mergeMethod: rebase
