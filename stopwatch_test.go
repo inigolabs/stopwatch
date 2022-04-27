@@ -22,13 +22,14 @@ func TestStopwatchGetResults(t *testing.T) {
 	}
 
 	mock.time = time.Date(2022, 2, 2, 22, 22, 22, 0, time.UTC)
-	testTimer.Step("init")
+	testTimer.Start()
 	mock.time = time.Date(2022, 2, 2, 22, 22, 23, 0, time.UTC)
 	testTimer.Step("a")
 	mock.time = time.Date(2022, 2, 2, 22, 22, 25, 0, time.UTC)
 	testTimer.Step("b")
 	mock.time = time.Date(2022, 2, 2, 22, 22, 28, 0, time.UTC)
 	testTimer.Step("c")
+	testTimer.Stop()
 	actual := testTimer.GetResults()
 
 	expect := &Results{

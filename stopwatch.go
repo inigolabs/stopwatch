@@ -11,7 +11,10 @@ import (
 
 // Timer is the interface for the stopwatch timer.
 type Timer interface {
+	Start()
 	Step(label string)
+	Stop()
+
 	WriteResults(w io.Writer) error
 	ShowResults() error
 	GetResults() *Results
@@ -30,26 +33,60 @@ type timer struct {
 	steps []*step
 
 	now func() time.Time
+
+	running bool
 }
 
 type step struct {
-	label string
-	time  time.Time
+	label     string
+	startTime time.Time
+	endTime   time.Time
 }
 
 // Start creates a profile timer and starts it.
-func Start() *timer {
-	t := &timer{
-		now: time.Now,
+func NewTimer() *timer {
+	return &timer{
+		now:     time.Now,
+		running: false,
 	}
-	t.steps = append(t.steps, &step{"init", t.now()})
-	return t
+}
+
+// Start starts the stopwatch
+func (t *timer) Start() {
+	if t.running {
+		panic("stopwatch already running")
+	}
+	t.running = true
+	t.steps = append(t.steps, &step{
+		startTime: t.now(),
+	})
+}
+
+// Stop stops the stopwatch
+func (t *timer) Stop() {
+	if !t.running {
+		panic("stopwatch already stopped")
+	}
+	t.running = false
+
+	t.steps = t.steps[:len(t.steps)-1]
 }
 
 // Step is like a lap on a stopwatch, it records the amount of time since the
 //  the last step and marks this step with the given label
 func (t *timer) Step(label string) {
-	t.steps = append(t.steps, &step{label, t.now()})
+	if !t.running {
+		panic("stopwatch not running")
+	}
+	now := t.now()
+
+	lastStep := t.steps[len(t.steps)-1]
+	lastStep.label = label
+	lastStep.endTime = now
+
+	t.steps = append(t.steps, &step{
+		startTime: now,
+	})
 }
 
 // WriteResults writes the timer step results to the given writer.
@@ -64,9 +101,10 @@ func (t *timer) WriteResults(w io.Writer) error {
 
 	bw := bufio.NewWriter(w)
 	longestLine := 0
-	for i := 1; i < len(t.steps); i++ {
+	totalDuration := time.Duration(0)
+	for i := 0; i < len(t.steps); i++ {
 		step := t.steps[i]
-		duration := step.time.Sub(t.steps[i-1].time)
+		duration := step.endTime.Sub(step.startTime)
 		durationStr := durationMillisecondStr(duration)
 		length, err := bw.WriteString(fmt.Sprintf(fmtstr, step.label, durationStr))
 		if err != nil {
@@ -75,15 +113,16 @@ func (t *timer) WriteResults(w io.Writer) error {
 		if length > longestLine {
 			longestLine = length
 		}
+
+		totalDuration += duration
 	}
+
 	seperator := strings.Repeat("-", longestLine) + "\n"
 	_, err := bw.WriteString(seperator)
 	if err != nil {
 		return err
 	}
 
-	lastStep := t.steps[len(t.steps)-1]
-	totalDuration := lastStep.time.Sub(t.steps[0].time)
 	totalDurationStr := durationMillisecondStr(totalDuration)
 	_, err = bw.WriteString(fmt.Sprintf(fmtstr, "total", totalDurationStr))
 	if err != nil {
@@ -104,9 +143,9 @@ func (t *timer) ShowResults() error {
 // GetResults returns the timer step results.
 func (t *timer) GetResults() *Results {
 	results := &Results{}
-	for i := 1; i < len(t.steps); i++ {
+	for i := 0; i < len(t.steps); i++ {
 		step := t.steps[i]
-		duration := step.time.Sub(t.steps[i-1].time)
+		duration := step.endTime.Sub(step.startTime)
 		results.Steps = append(results.Steps, Step{
 			Label:    step.label,
 			Duration: duration,
@@ -123,6 +162,12 @@ type noopTimer struct{}
 func StartNoopTimer() *noopTimer {
 	return &noopTimer{}
 }
+
+// Start for noop timer does nothing
+func (t *noopTimer) Start() {}
+
+// Stop for noop timer does nothing
+func (t *noopTimer) Stop() {}
 
 // Step for noop timer does nothing
 func (t *noopTimer) Step(label string) {}
