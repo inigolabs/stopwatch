@@ -45,10 +45,11 @@ type step struct {
 
 // Start creates a profile timer and starts it.
 func NewTimer() *timer {
-	return &timer{
+	t := &timer{
 		now:     time.Now,
-		running: false,
 	}
+	t.Start()
+	return t
 }
 
 // Start starts the stopwatch
