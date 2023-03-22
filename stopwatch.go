@@ -14,6 +14,7 @@ type Timer interface {
 	Start()
 	Step(label string)
 	Stop()
+	Copy() Timer
 
 	WriteResults(w io.Writer) error
 	ShowResults() error
@@ -44,10 +45,33 @@ type step struct {
 }
 
 // Start creates a profile timer and starts it.
-func NewTimer() *timer {
+func NewTimer() Timer {
 	return &timer{
 		now:     time.Now,
 		running: false,
+	}
+}
+
+// Copy copies the stopwatch
+func (t *timer) Copy() Timer {
+	if t == nil {
+		return nil
+	}
+
+	var steps = make([]*step, len(t.steps))
+
+	for i := range steps {
+		steps[i] = &step{
+			label:     t.steps[i].label,
+			startTime: t.steps[i].startTime,
+			endTime:   t.steps[i].endTime,
+		}
+	}
+
+	return &timer{
+		now:     t.now,
+		running: t.running,
+		steps:   steps,
 	}
 }
 
@@ -162,6 +186,9 @@ type noopTimer struct{}
 func StartNoopTimer() *noopTimer {
 	return &noopTimer{}
 }
+
+// Copy for noop timer does nothing
+func (t *noopTimer) Copy() Timer { return &noopTimer{} }
 
 // Start for noop timer does nothing
 func (t *noopTimer) Start() {}

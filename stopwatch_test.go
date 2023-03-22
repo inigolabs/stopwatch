@@ -1,6 +1,7 @@
 package stopwatch
 
 import (
+	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 
@@ -44,4 +45,33 @@ func TestStopwatchGetResults(t *testing.T) {
 	if diff != "" {
 		t.Fatal(diff)
 	}
+}
+
+func TestStopwatchCopy(t *testing.T) {
+	var newTimer = NewTimer()
+
+	newTimer.Start()
+	newTimer.Step("one")
+	newTimer.Step("two")
+	newTimer.Stop()
+
+	var newCopyOfTimer = newTimer.Copy()
+
+	newCopyOfTimer.Start()
+	newCopyOfTimer.Step("three")
+	newCopyOfTimer.Step("four")
+	newCopyOfTimer.Stop()
+
+	newTimer.Start()
+	newTimer.Step("three")
+	newTimer.Step("four")
+	newTimer.Stop()
+
+	t1, t2 := newTimer.GetResults(), newCopyOfTimer.GetResults()
+
+	require.Equal(t, len(t1.Steps), len(t2.Steps))
+	require.Equal(t, t1.Steps[0], t2.Steps[0])
+	require.Equal(t, t1.Steps[1], t2.Steps[1])
+	require.NotEqual(t, t1.Steps[2], t2.Steps[2])
+	require.NotEqual(t, t1.Steps[3], t2.Steps[3])
 }
