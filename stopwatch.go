@@ -19,6 +19,7 @@ type Timer interface {
 	WriteResults(w io.Writer) error
 	ShowResults() error
 	GetResults() *Results
+	GetResultMap() []map[string]int64
 }
 
 type Results struct {
@@ -97,7 +98,8 @@ func (t *timer) Stop() {
 }
 
 // Step is like a lap on a stopwatch, it records the amount of time since the
-//  the last step and marks this step with the given label
+//
+//	the last step and marks this step with the given label
 func (t *timer) Step(label string) {
 	if !t.running {
 		panic("stopwatch not running")
@@ -178,11 +180,25 @@ func (t *timer) GetResults() *Results {
 	return results
 }
 
+// GetResultMap returns the timer step results in a native map format.
+func (t *timer) GetResultMap() []map[string]int64 {
+	results := []map[string]int64{}
+	for i := 0; i < len(t.steps); i++ {
+		step := t.steps[i]
+		duration := step.endTime.Sub(step.startTime)
+		results = append(results, map[string]int64{
+			step.label: int64(duration),
+		})
+	}
+	return results
+}
+
 type noopTimer struct{}
 
 // StartNoopTimer creates a timer that does nothing. This is useful in cases
-//  where you want to keep the timer step call in production code, but don't
-//  want them to have any logical or performance effects.
+//
+//	where you want to keep the timer step call in production code, but don't
+//	want them to have any logical or performance effects.
 func StartNoopTimer() *noopTimer {
 	return &noopTimer{}
 }
@@ -207,6 +223,9 @@ func (t *noopTimer) ShowResults() error { return nil }
 
 // GetResults for noop timer does nothing
 func (t *noopTimer) GetResults() *Results { return nil }
+
+// GetResultsMap for noop timer does nothing
+func (t *noopTimer) GetResultMap() []map[string]int64 { return nil }
 
 func durationMillisecondStr(d time.Duration) string {
 	ms := float64(d) / float64(time.Millisecond)
