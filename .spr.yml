@@ -5,4 +5,7 @@ requireChecks: false
 requireApproval: false
 githubRemote: origin
 githubBranch: main
+remoteBranches: []
 mergeMethod: rebase
+mergeQueue: false
+forceFetchTags: false
