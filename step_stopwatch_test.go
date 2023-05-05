@@ -31,7 +31,6 @@ func TestStopwatchGetResults(t *testing.T) {
 	testStopWatch.Step("b")
 	mock.time = time.Date(2022, 2, 2, 22, 22, 28, 0, time.UTC)
 	testStopWatch.Step("c")
-	testStopWatch.Stop()
 	actual := testStopWatch.GetResults()
 
 	expect := &Results{
@@ -62,7 +61,6 @@ func TestStopwatchGetResultMap(t *testing.T) {
 	testStopWatch.Step("b")
 	mock.time = time.Date(2022, 2, 2, 22, 22, 28, 0, time.UTC)
 	testStopWatch.Step("c")
-	testStopWatch.Stop()
 	actual := testStopWatch.GetResultMap()
 
 	expect := []map[string]int64{
@@ -89,19 +87,14 @@ func TestStopwatchCopy(t *testing.T) {
 	sw.Start()
 	sw.Step("one")
 	sw.Step("two")
-	sw.Stop()
 
 	swc := sw.Copy()
 
-	swc.Start()
 	swc.Step("three")
 	swc.Step("four")
-	swc.Stop()
 
-	sw.Start()
 	sw.Step("three")
 	sw.Step("four")
-	sw.Stop()
 
 	t1, t2 := sw.GetResults(), swc.GetResults()
 
