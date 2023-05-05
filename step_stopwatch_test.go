@@ -19,20 +19,20 @@ func (t *timeMock) now() time.Time {
 
 func TestStopwatchGetResults(t *testing.T) {
 	mock := &timeMock{}
-	testTimer := &timer{
+	testStopWatch := &stopwatch{
 		now: mock.now,
 	}
 
 	mock.time = time.Date(2022, 2, 2, 22, 22, 22, 0, time.UTC)
-	testTimer.Start()
+	testStopWatch.Start()
 	mock.time = time.Date(2022, 2, 2, 22, 22, 23, 0, time.UTC)
-	testTimer.Step("a")
+	testStopWatch.Step("a")
 	mock.time = time.Date(2022, 2, 2, 22, 22, 25, 0, time.UTC)
-	testTimer.Step("b")
+	testStopWatch.Step("b")
 	mock.time = time.Date(2022, 2, 2, 22, 22, 28, 0, time.UTC)
-	testTimer.Step("c")
-	testTimer.Stop()
-	actual := testTimer.GetResults()
+	testStopWatch.Step("c")
+	testStopWatch.Stop()
+	actual := testStopWatch.GetResults()
 
 	expect := &Results{
 		Steps: []Step{
@@ -50,20 +50,20 @@ func TestStopwatchGetResults(t *testing.T) {
 
 func TestStopwatchGetResultMap(t *testing.T) {
 	mock := &timeMock{}
-	testTimer := &timer{
+	testStopWatch := &stopwatch{
 		now: mock.now,
 	}
 
 	mock.time = time.Date(2022, 2, 2, 22, 22, 22, 0, time.UTC)
-	testTimer.Start()
+	testStopWatch.Start()
 	mock.time = time.Date(2022, 2, 2, 22, 22, 23, 0, time.UTC)
-	testTimer.Step("a")
+	testStopWatch.Step("a")
 	mock.time = time.Date(2022, 2, 2, 22, 22, 25, 0, time.UTC)
-	testTimer.Step("b")
+	testStopWatch.Step("b")
 	mock.time = time.Date(2022, 2, 2, 22, 22, 28, 0, time.UTC)
-	testTimer.Step("c")
-	testTimer.Stop()
-	actual := testTimer.GetResultMap()
+	testStopWatch.Step("c")
+	testStopWatch.Stop()
+	actual := testStopWatch.GetResultMap()
 
 	expect := []map[string]int64{
 		{
@@ -84,26 +84,26 @@ func TestStopwatchGetResultMap(t *testing.T) {
 }
 
 func TestStopwatchCopy(t *testing.T) {
-	var newTimer = NewTimer()
+	sw := NewStopWatch()
 
-	newTimer.Start()
-	newTimer.Step("one")
-	newTimer.Step("two")
-	newTimer.Stop()
+	sw.Start()
+	sw.Step("one")
+	sw.Step("two")
+	sw.Stop()
 
-	var newCopyOfTimer = newTimer.Copy()
+	swc := sw.Copy()
 
-	newCopyOfTimer.Start()
-	newCopyOfTimer.Step("three")
-	newCopyOfTimer.Step("four")
-	newCopyOfTimer.Stop()
+	swc.Start()
+	swc.Step("three")
+	swc.Step("four")
+	swc.Stop()
 
-	newTimer.Start()
-	newTimer.Step("three")
-	newTimer.Step("four")
-	newTimer.Stop()
+	sw.Start()
+	sw.Step("three")
+	sw.Step("four")
+	sw.Stop()
 
-	t1, t2 := newTimer.GetResults(), newCopyOfTimer.GetResults()
+	t1, t2 := sw.GetResults(), swc.GetResults()
 
 	require.Equal(t, len(t1.Steps), len(t2.Steps))
 	require.Equal(t, t1.Steps[0], t2.Steps[0])

@@ -6,7 +6,7 @@
 
 ## A simple utility tool to profile go code.
 
-Profile timer that works like a stop watch, you start the timer and call the step function everytime you want to add a new data point. At the end you can print a summary of all the steps and the amount of time each step took.
+Profile stopwatch that works like a stop watch, you start the stopwatch and call the step function every time you want to add a new data point. At the end you can print a summary of all the steps and the amount of time each step took.
 
 Installation
 ------------
@@ -18,16 +18,16 @@ Usage
 -----
 ```Go
 func main() {
-    timer := stopwatch.Start()
+    sw := stopwatch.Start()
 
     doSomeStuff()
-    timer.Step("doSomeStuff")
+    sw.Step("doSomeStuff")
     doSomeMoreStuff()
-    timer.Step("doSomeMoreStuff")
+    sw.Step("doSomeMoreStuff")
     doEvenMoreStuff()
-    timer.Step("doEvenMoreStuff")
+    sw.Step("doEvenMoreStuff")
 
-    timer.ShowResults()
+    sw.ShowResults()
 }
 ```
 
@@ -45,25 +45,25 @@ Middleware
 ```Go
 func main() {
     router := chi.NewRouter()
-    router.Use(stopwatch.TimerMiddleware)
+    router.Use(stopwatch.StopWatchMiddleware)
     router.Get("/", get)
     http.ListenAndServe(":80", router)
 }
 
 func get(w http.ResponseWriter, r *http.Request) {
-    timer := stopwatch.TimerFromContext(r.Context())
+    sw := stopwatch.StopWatchFromContext(r.Context())
     doSomeStuff()
-    timer.Step("doSomeStuff")
+    sw.Step("doSomeStuff")
     doSomeMoreStuff()
-    timer.Step("doSomeMoreStuff")
+    sw.Step("doSomeMoreStuff")
     doEvenMoreStuff()
-    timer.Step("doEvenMoreStuff")
+    sw.Step("doEvenMoreStuff")
 }
 ```
 
-### Noop Timer
+### No-op StopWatch
 
-Often, you'll want to leave the profile step function calls in the code and only run them in debug or profile mode. In this case you can use `Start()` when in debug mode, and otherwise instantiate the timer using `StartNoopTimer()`. 
+Often, you'll want to leave the profile step function calls in the code and only run them in debug or profile mode. In this case you can use `Start()` when in debug mode, and otherwise instantiate the stopwatch using `StartNoopStopWatch()`. 
 
 License
 -------
