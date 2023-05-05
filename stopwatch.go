@@ -12,6 +12,7 @@ import (
 // Timer is the interface for the stopwatch timer.
 type Timer interface {
 	Start()
+	StartWithTime(tm time.Time)
 	Step(label string)
 	Stop()
 	Copy() Timer
@@ -78,12 +79,17 @@ func (t *timer) Copy() Timer {
 
 // Start starts the stopwatch
 func (t *timer) Start() {
+	t.StartWithTime(t.now())
+}
+
+// StartWithTime starts the stopwatch at a given time
+func (t *timer) StartWithTime(tm time.Time) {
 	if t.running {
 		panic("stopwatch already running")
 	}
 	t.running = true
 	t.steps = append(t.steps, &step{
-		startTime: t.now(),
+		startTime: tm,
 	})
 }
 
@@ -208,6 +214,9 @@ func (t *noopTimer) Copy() Timer { return &noopTimer{} }
 
 // Start for noop timer does nothing
 func (t *noopTimer) Start() {}
+
+// StartWithTime for noop timer does nothing
+func (t *noopTimer) StartWithTime(tm time.Time) {}
 
 // Stop for noop timer does nothing
 func (t *noopTimer) Stop() {}
