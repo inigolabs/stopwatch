@@ -10,11 +10,11 @@ type StopWatch interface {
 	Start()
 	StartWithTime(tm time.Time)
 	Step(label string)
-	Stop()
 	Copy() StopWatch
 
 	WriteResults(w io.Writer) error
 	ShowResults() error
+
 	GetResults() *Results
 	GetResultMap() []map[string]int64
 }

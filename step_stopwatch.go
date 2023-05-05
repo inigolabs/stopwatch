@@ -18,9 +18,8 @@ type stopwatch struct {
 }
 
 type step struct {
-	label     string
-	startTime time.Time
-	endTime   time.Time
+	label string
+	time  time.Time
 }
 
 // Start creates a profile stopwatch
@@ -41,9 +40,8 @@ func (t *stopwatch) Copy() StopWatch {
 
 	for i := range steps {
 		steps[i] = &step{
-			label:     t.steps[i].label,
-			startTime: t.steps[i].startTime,
-			endTime:   t.steps[i].endTime,
+			label: t.steps[i].label,
+			time:  t.steps[i].time,
 		}
 	}
 
@@ -66,18 +64,8 @@ func (t *stopwatch) StartWithTime(tm time.Time) {
 	}
 	t.running = true
 	t.steps = append(t.steps, &step{
-		startTime: tm,
+		time: tm,
 	})
-}
-
-// Stop stops the stopwatch
-func (t *stopwatch) Stop() {
-	if !t.running {
-		panic("stopwatch already stopped")
-	}
-	t.running = false
-
-	t.steps = t.steps[:len(t.steps)-1]
 }
 
 // Step is like a lap on a stopwatch, it records the amount of time since the
@@ -87,14 +75,10 @@ func (t *stopwatch) Step(label string) {
 	if !t.running {
 		panic("stopwatch not running")
 	}
-	now := t.now()
-
-	lastStep := t.steps[len(t.steps)-1]
-	lastStep.label = label
-	lastStep.endTime = now
 
 	t.steps = append(t.steps, &step{
-		startTime: now,
+		label: label,
+		time:  t.now(),
 	})
 }
 
@@ -111,11 +95,12 @@ func (t *stopwatch) WriteResults(w io.Writer) error {
 	bw := bufio.NewWriter(w)
 	longestLine := 0
 	totalDuration := time.Duration(0)
-	for i := 0; i < len(t.steps); i++ {
-		step := t.steps[i]
-		duration := step.endTime.Sub(step.startTime)
+	prevStep := t.steps[0]
+	for i := 1; i < len(t.steps); i++ {
+		currStep := t.steps[i]
+		duration := currStep.time.Sub(prevStep.time)
 		durationStr := durationMillisecondStr(duration)
-		length, err := bw.WriteString(fmt.Sprintf(fmtstr, step.label, durationStr))
+		length, err := bw.WriteString(fmt.Sprintf(fmtstr, currStep.label, durationStr))
 		if err != nil {
 			return err
 		}
@@ -123,6 +108,7 @@ func (t *stopwatch) WriteResults(w io.Writer) error {
 			longestLine = length
 		}
 
+		prevStep = currStep
 		totalDuration += duration
 	}
 
@@ -152,13 +138,15 @@ func (t *stopwatch) ShowResults() error {
 // GetResults returns the stopwatch step results.
 func (t *stopwatch) GetResults() *Results {
 	results := &Results{}
-	for i := 0; i < len(t.steps); i++ {
-		step := t.steps[i]
-		duration := step.endTime.Sub(step.startTime)
+	prevStep := t.steps[0]
+	for i := 1; i < len(t.steps); i++ {
+		currStep := t.steps[i]
+		duration := currStep.time.Sub(prevStep.time)
 		results.Steps = append(results.Steps, Step{
-			Label:    step.label,
+			Label:    currStep.label,
 			Duration: duration,
 		})
+		prevStep = currStep
 	}
 	return results
 }
@@ -166,12 +154,15 @@ func (t *stopwatch) GetResults() *Results {
 // GetResultMap returns the stopwatch step results in a native map format.
 func (t *stopwatch) GetResultMap() []map[string]int64 {
 	results := []map[string]int64{}
-	for i := 0; i < len(t.steps); i++ {
-		step := t.steps[i]
-		duration := step.endTime.Sub(step.startTime)
+
+	prevStep := t.steps[0]
+	for i := 1; i < len(t.steps); i++ {
+		currStep := t.steps[i]
+		duration := currStep.time.Sub(prevStep.time)
 		results = append(results, map[string]int64{
-			step.label: int64(duration),
+			currStep.label: int64(duration),
 		})
+		prevStep = currStep
 	}
 	return results
 }

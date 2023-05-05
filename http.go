@@ -17,7 +17,6 @@ func StopWatchMiddleware(next http.Handler) http.Handler {
 		sw.Start()
 		r = requestWithStopWatch(r, sw)
 		next.ServeHTTP(w, r)
-		sw.Stop()
 
 		sw.ShowResults()
 	})
