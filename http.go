@@ -8,33 +8,33 @@ import (
 type contextKey string
 
 var (
-	contextKeyTimer = contextKey("timer")
+	contextKeyStopWatch = contextKey("stopwatch")
 )
 
-func TimerMiddleware(next http.Handler) http.Handler {
+func StopWatchMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		timer := NewTimer()
-		timer.Start()
-		r = requestWithTimer(r, timer)
+		sw := NewStopWatch()
+		sw.Start()
+		r = requestWithStopWatch(r, sw)
 		next.ServeHTTP(w, r)
-		timer.Stop()
+		sw.Stop()
 
-		timer.ShowResults()
+		sw.ShowResults()
 	})
 }
 
-func TimerFromContext(ctx context.Context) Timer {
-	timer := ctx.Value(contextKeyTimer)
-	if timer == nil {
-		return StartNoopTimer()
+func StopWatchFromContext(ctx context.Context) StopWatch {
+	sw := ctx.Value(contextKeyStopWatch)
+	if sw == nil {
+		return StartNoopStopWatch()
 	}
-	return timer.(Timer)
+	return sw.(StopWatch)
 }
 
-func contextWithTimer(ctx context.Context, timer Timer) context.Context {
-	return context.WithValue(ctx, contextKeyTimer, timer)
+func contextWithStopWatch(ctx context.Context, sw StopWatch) context.Context {
+	return context.WithValue(ctx, contextKeyStopWatch, sw)
 }
 
-func requestWithTimer(r *http.Request, timer Timer) *http.Request {
-	return r.WithContext(contextWithTimer(r.Context(), timer))
+func requestWithStopWatch(r *http.Request, sw StopWatch) *http.Request {
+	return r.WithContext(contextWithStopWatch(r.Context(), sw))
 }
