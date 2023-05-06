@@ -137,15 +137,19 @@ func (t *stopwatch) ShowResults() error {
 
 // GetResults returns the stopwatch step results.
 func (t *stopwatch) GetResults() *Results {
-	results := &Results{}
+	if len(t.steps) < 2 {
+		return &Results{}
+	}
+
+	results := &Results{
+		Steps: make([]Step, len(t.steps)-1),
+	}
 	prevStep := t.steps[0]
 	for i := 1; i < len(t.steps); i++ {
 		currStep := t.steps[i]
 		duration := currStep.time.Sub(prevStep.time)
-		results.Steps = append(results.Steps, Step{
-			Label:    currStep.label,
-			Duration: duration,
-		})
+		results.Steps[i-1].Label = currStep.label
+		results.Steps[i-1].Duration = duration
 		prevStep = currStep
 	}
 	return results
@@ -153,15 +157,19 @@ func (t *stopwatch) GetResults() *Results {
 
 // GetResultMap returns the stopwatch step results in a native map format.
 func (t *stopwatch) GetResultMap() []map[string]int64 {
-	results := []map[string]int64{}
+	if len(t.steps) < 2 {
+		return nil
+	}
+
+	results := make([]map[string]int64, len(t.steps)-1)
 
 	prevStep := t.steps[0]
 	for i := 1; i < len(t.steps); i++ {
 		currStep := t.steps[i]
 		duration := currStep.time.Sub(prevStep.time)
-		results = append(results, map[string]int64{
+		results[i-1] = map[string]int64{
 			currStep.label: int64(duration),
-		})
+		}
 		prevStep = currStep
 	}
 	return results
